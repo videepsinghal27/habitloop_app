@@ -144,6 +144,40 @@ void _submitHabit() {
                     leading: Text(habit.emoji, style: TextStyle(fontSize: 24)),
                     title: Text(habit.title),
                     subtitle: Text('${habit.frequency} • ${habit.time.format(context)}'),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text('Delete Habit'),
+                              content: Text('Are you sure you want to delete "${habit.title}"?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (confirm == true) {
+                          setState(() {
+                            _habits.removeAt(index);
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${habit.title} deleted')),
+                          );
+                        }
+                      },
+                    ),
                   );
                 },
               ),
