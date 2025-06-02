@@ -45,22 +45,35 @@ class _HabitCreationScreenState extends State<HabitCreationScreen> {
             ),
             SizedBox(height: 16),
 
-            // Emoji selector (basic)
+            // Improved Emoji Selector
             Wrap(
-              spacing: 10,
+              spacing: 12,
+              runSpacing: 12,
               children: ['💪', '📚', '🧘‍♂️', '🍎'].map((emoji) {
-                return ChoiceChip(
-                  label: Text(emoji, style: TextStyle(fontSize: 24)),
-                  selected: _selectedEmoji == emoji,
-                  onSelected: (_) {
+                return GestureDetector(
+                  onTap: () {
                     setState(() {
                       _selectedEmoji = emoji;
                     });
                   },
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _selectedEmoji == emoji ? Colors.blue[100] : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _selectedEmoji == emoji ? Colors.blue : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: Text(
+                      emoji,
+                      style: TextStyle(fontSize: 32),
+                    ),
+                  ),
                 );
               }).toList(),
             ),
-            SizedBox(height: 16),
 
             // Frequency selector
             DropdownButton<String>(
