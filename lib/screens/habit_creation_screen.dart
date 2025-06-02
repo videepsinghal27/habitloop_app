@@ -1,8 +1,24 @@
 import 'package:flutter/material.dart';
 
 class HabitCreationScreen extends StatefulWidget {
+  const HabitCreationScreen({Key? key}) : super(key: key);
+
   @override
   _HabitCreationScreenState createState() => _HabitCreationScreenState();
+}
+
+class Habit {
+  final String title;
+  final String emoji;
+  final String frequency;
+  final TimeOfDay time;
+
+  Habit({
+    required this.title,
+    required this.emoji,
+    required this.frequency,
+    required this.time,
+  });
 }
 
 class _HabitCreationScreenState extends State<HabitCreationScreen> {
@@ -10,6 +26,8 @@ class _HabitCreationScreenState extends State<HabitCreationScreen> {
   String? _selectedEmoji;
   String _selectedFrequency = 'Daily';
   TimeOfDay _selectedTime = TimeOfDay.now();
+
+  final List<Habit> _habits = [];
 
   void _pickTime() async {
     final TimeOfDay? picked = await showTimePicker(
@@ -23,12 +41,26 @@ class _HabitCreationScreenState extends State<HabitCreationScreen> {
     }
   }
 
-  void _submitHabit() {
-    print('Title: ${_titleController.text}');
-    print('Emoji: $_selectedEmoji');
-    print('Frequency: $_selectedFrequency');
-    print('Time: ${_selectedTime.format(context)}');
-  }
+void _submitHabit() {
+  if (_titleController.text.isEmpty || _selectedEmoji == null) return;
+
+  final newHabit = Habit(
+    title: _titleController.text,
+    emoji: _selectedEmoji!,
+    frequency: _selectedFrequency,
+    time: _selectedTime,
+  );
+
+  setState(() {
+    _habits.add(newHabit);
+    _titleController.clear();
+    _selectedEmoji = null;
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Habit added!')),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +134,19 @@ class _HabitCreationScreenState extends State<HabitCreationScreen> {
             ElevatedButton(
               onPressed: _submitHabit,
               child: Text('Add Habit'),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _habits.length,
+                itemBuilder: (context, index) {
+                  final habit = _habits[index];
+                  return ListTile(
+                    leading: Text(habit.emoji, style: TextStyle(fontSize: 24)),
+                    title: Text(habit.title),
+                    subtitle: Text('${habit.frequency} • ${habit.time.format(context)}'),
+                  );
+                },
+              ),
             ),
           ],
         ),
