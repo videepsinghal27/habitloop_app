@@ -12,6 +12,7 @@ class Habit {
   final String emoji;
   final String frequency;
   final TimeOfDay time;
+  bool isCompleted;
   // Optional reminder time
   TimeOfDay? reminderTime;
 
@@ -21,6 +22,7 @@ class Habit {
     required this.frequency,
     required this.time,
     this.reminderTime, // ✅ add to constructor
+    this.isCompleted = false,
   });
 }
 
