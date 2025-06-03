@@ -12,12 +12,15 @@ class Habit {
   final String emoji;
   final String frequency;
   final TimeOfDay time;
+  // Optional reminder time
+  TimeOfDay? reminderTime;
 
   Habit({
     required this.title,
     required this.emoji,
     required this.frequency,
     required this.time,
+    this.reminderTime, // ✅ add to constructor
   });
 }
 
@@ -143,48 +146,72 @@ void _submitHabit() {
                   return ListTile(
                     leading: Text(habit.emoji, style: TextStyle(fontSize: 24)),
                     title: Text(habit.title),
-                    subtitle: Text('${habit.frequency} • ${habit.time.format(context)}'),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text('Delete Habit'),
-                              content: Text('Are you sure you want to delete "${habit.title}"?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
-                                  child: Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
-                                  child: Text('Delete', style: TextStyle(color: Colors.red)),
-                                ),
-                              ],
+                    subtitle: Text(
+                      '${habit.frequency} • ${habit.time.format(context)}'
+                      '${habit.reminderTime != null ? ' • Reminder: ${habit.reminderTime!.format(context)}' : ''}',
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.access_time, color: Colors.blue),
+                          tooltip: 'Set Reminder',
+                          onPressed: () async {
+                            final picked = await showTimePicker(
+                              context: context,
+                              initialTime: habit.reminderTime ?? TimeOfDay.now(),
                             );
+                            if (picked != null) {
+                              setState(() {
+                                habit.reminderTime = picked;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Reminder set for ${picked.format(context)}')),
+                              );
+                            }
                           },
-                        );
-
-                        if (confirm == true) {
-                          setState(() {
-                            _habits.removeAt(index);
-                          });
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('${habit.title} deleted')),
-                          );
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text('Delete Habit'),
+                                  content: Text('Are you sure you want to delete "${habit.title}"?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      child: Text('Delete', style: TextStyle(color: Colors.red)),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            if (confirm == true) {
+                              setState(() {
+                                _habits.removeAt(index);
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('${habit.title} deleted')),
+                              );
                         }
                       },
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
+                  ],
+                ),
+              );
+            },
+          ),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  ),
+);
+}
 }
