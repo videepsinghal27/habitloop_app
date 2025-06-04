@@ -9,7 +9,45 @@ class HabitLoopApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'HabitLoop',
-      home: TodayDashboardScreen(),
+      theme: ThemeData(primarySwatch: Colors.teal),
+      home: HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('HabitLoop')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HabitCreationScreen()),
+                );
+              },
+              child: Text('Create Habit'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TodayDashboardScreen()),
+                );
+              },
+              child: Text("Today's Habits"),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

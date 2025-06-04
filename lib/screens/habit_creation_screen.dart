@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../data/habit_store.dart';
+
 
 class HabitCreationScreen extends StatefulWidget {
   const HabitCreationScreen({Key? key}) : super(key: key);
@@ -57,7 +59,7 @@ void _submitHabit() {
   );
 
   setState(() {
-    _habits.add(newHabit);
+    HabitStore.habits.add(newHabit);
     _titleController.clear();
     _selectedEmoji = null;
   });

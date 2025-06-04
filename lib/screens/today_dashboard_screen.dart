@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:habitloop_app/screens/habit_creation_screen.dart'; // for Habit class
+import '../data/habit_store.dart';
 
 class TodayDashboardScreen extends StatefulWidget {
   const TodayDashboardScreen({Key? key}) : super(key: key);
@@ -15,10 +16,9 @@ class _TodayDashboardScreenState extends State<TodayDashboardScreen> {
   void initState() {
     super.initState();
     // Mock today's habits — in real app this would be fetched from DB
-    _todayHabits = [
-      Habit(title: 'Run', emoji: '🏃‍♂️', frequency: 'Daily', time: TimeOfDay(hour: 6, minute: 0)),
-      Habit(title: 'Read', emoji: '📖', frequency: 'Daily', time: TimeOfDay(hour: 20, minute: 0)),
-    ];
+      _todayHabits = HabitStore.habits.where((habit) {
+        return habit.frequency == 'Daily'; // Filter for "today"
+      }).toList();
   }
 
   int get completedCount => _todayHabits.where((h) => h.isCompleted).length;
