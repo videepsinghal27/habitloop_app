@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:habitloop_app/screens/habit_creation_screen.dart'; // for Habit class
 import '../data/habit_store.dart';
+import '../widgets/progress_ring.dart';
 
 class TodayDashboardScreen extends StatefulWidget {
   const TodayDashboardScreen({Key? key}) : super(key: key);
@@ -16,9 +17,9 @@ class _TodayDashboardScreenState extends State<TodayDashboardScreen> {
   void initState() {
     super.initState();
     // Mock today's habits — in real app this would be fetched from DB
-      _todayHabits = HabitStore.habits.where((habit) {
-        return habit.frequency == 'Daily'; // Filter for "today"
-      }).toList();
+    _todayHabits = HabitStore.habits.where((habit) {
+      return habit.frequency == 'Daily'; // Filter for "today"
+    }).toList();
   }
 
   int get completedCount => _todayHabits.where((h) => h.isCompleted).length;
@@ -34,24 +35,9 @@ class _TodayDashboardScreenState extends State<TodayDashboardScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Progress Ring Placeholder
-            SizedBox(
-              height: 150,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 12,
-                    backgroundColor: Colors.grey[300],
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-                  ),
-                  Text('${(progress * 100).toInt()}%'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
+            // Progress Ring
+            DashboardProgressRing(progress: progress),
+          
             // List of Today's Habits
             Expanded(
               child: ListView.builder(

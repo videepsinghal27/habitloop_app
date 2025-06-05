@@ -10,20 +10,25 @@ class HabitCreationScreen extends StatefulWidget {
 }
 
 class Habit {
-  final String title;
-  final String emoji;
-  final String frequency;
-  final TimeOfDay time;
-  bool isCompleted;
-  // Optional reminder time
+  String title;
+  String emoji;
+  String frequency;
+  TimeOfDay time;
   TimeOfDay? reminderTime;
+  String? description;
+  String? priority;
+  DateTime? date;
+  bool isCompleted;
 
   Habit({
     required this.title,
     required this.emoji,
     required this.frequency,
     required this.time,
-    this.reminderTime, // ✅ add to constructor
+    this.reminderTime,
+    this.description,
+    this.priority,
+    this.date,
     this.isCompleted = false,
   });
 }
@@ -32,9 +37,108 @@ class _HabitCreationScreenState extends State<HabitCreationScreen> {
   final TextEditingController _titleController = TextEditingController();
   String? _selectedEmoji;
   String _selectedFrequency = 'Daily';
+  DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
 
   final List<Habit> _habits = [];
+
+  void _pickDate() async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: _selectedDate,
+    firstDate: DateTime.now().subtract(const Duration(days: 365)),
+    lastDate: DateTime.now().add(const Duration(days: 365)),
+  );
+  if (picked != null && picked != _selectedDate) {
+    setState(() {
+      _selectedDate = picked;
+    });
+  }
+}
+
+  void _showHabitDetailsModal(Habit habit, int index) {
+  final descController = TextEditingController(text: habit.description ?? '');
+  String selectedPriority = habit.priority ?? 'Medium';
+  DateTime selectedDate = habit.date ?? DateTime.now();
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text('Habit Details'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('📝 ${habit.title}', style: TextStyle(fontSize: 18)),
+            SizedBox(height: 10),
+
+            // Description
+            TextField(
+              controller: descController,
+              decoration: InputDecoration(labelText: 'Description'),
+            ),
+
+            // Priority Dropdown
+            DropdownButtonFormField<String>(
+              value: selectedPriority,
+              items: ['Low', 'Medium', 'High'].map((priority) {
+                return DropdownMenuItem(
+                  value: priority,
+                  child: Text(priority),
+                );
+              }).toList(),
+              onChanged: (value) {
+                selectedPriority = value!;
+              },
+              decoration: InputDecoration(labelText: 'Priority'),
+            ),
+
+            // Date Picker
+            SizedBox(height: 12),
+            TextButton(
+              onPressed: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate,
+                  firstDate: DateTime.now().subtract(Duration(days: 365)),
+                  lastDate: DateTime.now().add(Duration(days: 365)),
+                );
+                if (picked != null) selectedDate = picked;
+              },
+              child: Text('📅 Pick Date'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            setState(() {
+              habit.description = descController.text;
+              habit.priority = selectedPriority;
+              habit.date = selectedDate;
+            });
+            Navigator.of(context).pop();
+          },
+          child: Text('Save'),
+        ),
+        TextButton(
+          onPressed: () {
+            setState(() {
+              HabitStore.habits.removeAt(index);
+              HabitStore.habits.remove(habit);
+            });
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${habit.title} deleted')),
+            );
+          },
+          child: Text('Delete', style: TextStyle(color: Colors.red)),
+        ),
+      ],
+    ),
+  );
+}
 
   void _pickTime() async {
     final TimeOfDay? picked = await showTimePicker(
@@ -56,6 +160,7 @@ void _submitHabit() {
     emoji: _selectedEmoji!,
     frequency: _selectedFrequency,
     time: _selectedTime,
+    date: _selectedDate,
   );
 
   setState(() {
@@ -137,6 +242,12 @@ void _submitHabit() {
             ),
             SizedBox(height: 16),
 
+            // Date picker
+            ElevatedButton(
+              onPressed: _pickDate,
+              child: Text('Pick Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}'),
+            ),
+
             // Submit button
             ElevatedButton(
               onPressed: _submitHabit,
@@ -144,71 +255,18 @@ void _submitHabit() {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: _habits.length,
-                itemBuilder: (context, index) {
-                  final habit = _habits[index];
-                  return ListTile(
-                    leading: Text(habit.emoji, style: TextStyle(fontSize: 24)),
-                    title: Text(habit.title),
-                    subtitle: Text(
-                      '${habit.frequency} • ${habit.time.format(context)}'
-                      '${habit.reminderTime != null ? ' • Reminder: ${habit.reminderTime!.format(context)}' : ''}',
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.access_time, color: Colors.blue),
-                          tooltip: 'Set Reminder',
-                          onPressed: () async {
-                            final picked = await showTimePicker(
-                              context: context,
-                              initialTime: habit.reminderTime ?? TimeOfDay.now(),
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                habit.reminderTime = picked;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Reminder set for ${picked.format(context)}')),
-                              );
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: Text('Delete Habit'),
-                                  content: Text('Are you sure you want to delete "${habit.title}"?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
-                                      child: Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
-                                      child: Text('Delete', style: TextStyle(color: Colors.red)),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                            if (confirm == true) {
-                              setState(() {
-                                _habits.removeAt(index);
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('${habit.title} deleted')),
-                              );
-                        }
-                      },
-                    ),
-                  ],
+              itemCount: HabitStore.habits.length,
+              itemBuilder: (context, index) {
+                final habit = HabitStore.habits[index];
+              return ListTile(
+                onTap: () => _showHabitDetailsModal(habit, index),
+                leading: Text(habit.emoji, style: TextStyle(fontSize: 24)),
+                title: Text(habit.title),
+                subtitle: Text(
+                  '${habit.frequency} • ${habit.time.format(context)}'
+                  '${habit.reminderTime != null ? ' • Reminder: ${habit.reminderTime!.format(context)}' : ''}',
                 ),
+                trailing: Icon(Icons.info_outline, color: Colors.blue),
               );
             },
           ),
