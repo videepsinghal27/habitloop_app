@@ -35,12 +35,11 @@ class Habit {
 
 class _HabitCreationScreenState extends State<HabitCreationScreen> {
   final TextEditingController _titleController = TextEditingController();
+  final String _motivationalQuote = "Small steps every day lead to big changes. 🌱";
   String? _selectedEmoji;
   String _selectedFrequency = 'Daily';
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-
-  final List<Habit> _habits = [];
 
   void _pickDate() async {
   final DateTime? picked = await showDatePicker(
@@ -254,23 +253,54 @@ void _submitHabit() {
               child: Text('Add Habit'),
             ),
             Expanded(
-              child: ListView.builder(
-              itemCount: HabitStore.habits.length,
-              itemBuilder: (context, index) {
-                final habit = HabitStore.habits[index];
-              return ListTile(
-                onTap: () => _showHabitDetailsModal(habit, index),
-                leading: Text(habit.emoji, style: TextStyle(fontSize: 24)),
-                title: Text(habit.title),
-                subtitle: Text(
-                  '${habit.frequency} • ${habit.time.format(context)}'
-                  '${habit.reminderTime != null ? ' • Reminder: ${habit.reminderTime!.format(context)}' : ''}',
-                ),
-                trailing: Icon(Icons.info_outline, color: Colors.blue),
-              );
-            },
-          ),
-        ),
+              child: HabitStore.habits.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.self_improvement, size: 80, color: Colors.blueGrey),
+                          SizedBox(height: 20),
+                          Text(
+                            'No habits yet!',
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            _motivationalQuote,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          SizedBox(height: 30),
+                          ElevatedButton(
+                            onPressed: () {
+                              // Could scroll to top or open focus in future
+                            },
+                            child: Text('Create your first habit'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: HabitStore.habits.length,
+                      itemBuilder: (context, index) {
+                        final habit = HabitStore.habits[index];
+                        return ListTile(
+                          onTap: () => _showHabitDetailsModal(habit, index),
+                          leading: Text(habit.emoji, style: TextStyle(fontSize: 24)),
+                          title: Text(habit.title),
+                          subtitle: Text(
+                            '${habit.frequency} • ${habit.time.format(context)}'
+                            '${habit.reminderTime != null ? ' • Reminder: ${habit.reminderTime!.format(context)}' : ''}',
+                          ),
+                          trailing: Icon(Icons.info_outline, color: Colors.blue),
+                        );
+                      },
+                    ),
+            ),
       ],
     ),
   ),
